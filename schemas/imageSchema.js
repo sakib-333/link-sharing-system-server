@@ -18,7 +18,7 @@ const imageSchema = new Schema({
     required: [true, "Image URL is required"],
     enum: ["public", "private"],
   },
-  visibility: {
+  totalAccess: {
     type: Number,
     default: 0,
   },
@@ -26,4 +26,4 @@ const imageSchema = new Schema({
 
 const Image = model("Image", imageSchema);
 
-model.exports = Image;
+module.exports = Image;

@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const Image = require("./schemas/imageSchema");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -34,6 +35,22 @@ mongoose
   .then(() => console.log("Connected to DB"))
   .catch((err) => console.log(err));
 
+const checkToken = (req, res, next) => {
+  const token = req?.cookies?.LINK_SHARING_SYSTEM;
+
+  if (!token) {
+    return res.status(403).send({ message: "Unauthorized access" });
+  } else {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).send({ message: "Unauthorized access" });
+      }
+      req.decodedEmail = decoded.email;
+      next();
+    });
+  }
+};
+
 app.post("/jwt", (req, res) => {
   const email = req.body;
   const token = jwt.sign({ email }, process.env.JWT_SECRET, {
@@ -55,6 +72,19 @@ app.post("/logout", async (req, res) => {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   });
   res.send({ acknowledgement: true, status: "cookie cleared" });
+});
+
+app.post("/upload-image", checkToken, async (req, res) => {
+  const imageData = req.body;
+
+  try {
+    const newImage = new Image({ ...imageData });
+    await newImage.save();
+
+    res.send({ acknowledgement: true, message: "Image saved" });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 app.get("/", (req, res) => {

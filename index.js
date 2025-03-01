@@ -44,6 +44,15 @@ app.post("/jwt", (req, res) => {
   res.send({ acknowledgement: true, status: "cookie created" });
 });
 
+app.post("/logout", async (req, res) => {
+  res.clearCookie("LINK_SHARING_SYSTEM", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  });
+  res.send({ acknowledgement: true, status: "cookie cleared" });
+});
+
 app.get("/", (req, res) => {
   res.send(
     '<h1 style="color:green; text-align:center">Server is running...</h1>'

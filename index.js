@@ -10,7 +10,11 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://link-sharing-system-client.web.app",
+      "https://link-sharing-system-client.firebaseapp.com",
+    ],
     credentials: true,
   })
 );

@@ -8,7 +8,12 @@ const mongoose = require("mongoose");
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -24,6 +29,20 @@ mongoose
   .connect(uri)
   .then(() => console.log("Connected to DB"))
   .catch((err) => console.log(err));
+
+app.post("/jwt", (req, res) => {
+  const email = req.body;
+  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+
+  res.cookie("LINK_SHARING_SYSTEM", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  });
+  res.send({ acknowledgement: true, status: "cookie created" });
+});
 
 app.get("/", (req, res) => {
   res.send(

@@ -96,7 +96,7 @@ app.post("/my-links", checkToken, async (req, res) => {
   const { email } = req.decodedEmail;
 
   try {
-    const myLinks = await Image.find({ author: email });
+    const myLinks = await Image.find({ author: email }).exec();
     res.send({ acknowledgement: true, myLinks });
   } catch (err) {
     res.send(responseErr);
@@ -117,7 +117,7 @@ app.get("/all-links", async (req, res) => {
   });
 
   try {
-    const result = await Image.find({});
+    const result = await Image.find({}).exec();
     const allLinks = result.map((link) => {
       if (!email && link.visibility === "private") {
         link.imageURL = "www.fake-image.com";
@@ -140,10 +140,31 @@ app.post("/get-image", checkToken, async (req, res) => {
         $inc: { totalAccess: 1 },
       },
       { new: true }
-    );
+    ).exec();
     res.send({ acknowledgement: true, image });
   } catch (err) {
     res.send(err);
+  }
+});
+
+app.post("/fetch-image", checkToken, async (req, res) => {
+  const { id } = req.body;
+  try {
+    const image = await Image.findById(id, "title visibility imageURL");
+    res.send({ acknowledgement: true, image });
+  } catch {
+    res.send(responseErr);
+  }
+});
+
+app.post("/update-info", checkToken, async (req, res) => {
+  const newData = req.body;
+  try {
+    const { id, imageData } = newData;
+    await Image.findByIdAndUpdate(id, { ...imageData }).exec();
+    res.send({ acknowledgement: true, message: "Image info updated" });
+  } catch {
+    res.send(responseErr);
   }
 });
 

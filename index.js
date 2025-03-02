@@ -168,6 +168,16 @@ app.post("/update-info", checkToken, async (req, res) => {
   }
 });
 
+app.delete("/delete-image", async (req, res) => {
+  const { id } = req.query;
+  try {
+    await Image.findByIdAndDelete(id);
+    res.send({ acknowledgement: true, message: "Image deleted successfully" });
+  } catch {
+    res.send(responseErr);
+  }
+});
+
 app.get("/", (req, res) => {
   res.send(
     '<h1 style="color:green; text-align:center">Server is running...</h1>'

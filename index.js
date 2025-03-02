@@ -131,7 +131,7 @@ app.get("/all-links", async (req, res) => {
   }
 });
 
-app.post("/get-image", checkToken, async (req, res) => {
+app.post("/get-image", async (req, res) => {
   const { id } = req.body;
   try {
     const image = await Image.findByIdAndUpdate(

@@ -30,6 +30,11 @@ const uri = process.env.URI.replace("<db_username>", db_username).replace(
   db_password
 );
 
+const responseErr = {
+  acknowledgement: false,
+  message: "Something went wrong!",
+};
+
 mongoose
   .connect(uri)
   .then(() => console.log("Connected to DB"))
@@ -83,7 +88,62 @@ app.post("/upload-image", checkToken, async (req, res) => {
 
     res.send({ acknowledgement: true, message: "Image saved" });
   } catch (err) {
-    console.log(err);
+    res.send(responseErr);
+  }
+});
+
+app.post("/my-links", checkToken, async (req, res) => {
+  const { email } = req.decodedEmail;
+
+  try {
+    const myLinks = await Image.find({ author: email });
+    res.send({ acknowledgement: true, myLinks });
+  } catch (err) {
+    res.send(responseErr);
+  }
+});
+
+app.get("/all-links", async (req, res) => {
+  const token = req?.cookies?.LINK_SHARING_SYSTEM;
+
+  let email;
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      email = null;
+    } else {
+      email = decoded.email;
+    }
+  });
+
+  try {
+    const result = await Image.find({});
+    const allLinks = result.map((link) => {
+      if (!email && link.visibility === "private") {
+        link.imageURL = "www.fake-image.com";
+      }
+      return link;
+    });
+
+    res.send({ acknowledgement: true, allLinks });
+  } catch {
+    res.send(responseErr);
+  }
+});
+
+app.post("/get-image", checkToken, async (req, res) => {
+  const { id } = req.body;
+  try {
+    const image = await Image.findByIdAndUpdate(
+      id,
+      {
+        $inc: { totalAccess: 1 },
+      },
+      { new: true }
+    );
+    res.send({ acknowledgement: true, image });
+  } catch (err) {
+    res.send(err);
   }
 });
 
